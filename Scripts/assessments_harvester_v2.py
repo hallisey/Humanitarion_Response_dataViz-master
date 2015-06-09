@@ -7,6 +7,8 @@ from cartodb import CartoDBAPIKey, CartoDBException
 api_key = 'ebd93f0d0daf2ab7d2b31e2449e307cfe0744252'
 cartodb_domain = 'troy'
 cl = CartoDBAPIKey(api_key, cartodb_domain)
+global sql_query
+sql_query=''
 
 def insert_into_cartodb(sql_query):
     try:
@@ -66,7 +68,7 @@ def getResults(data):
 def create_sql_statement(long, lat, id, label, cluster_id, cluster_label, location_id, location_label):
     # Start with a basic INSERT statement
     # -> Don't forget to replace with your table name
-    sql_query = 'INSERT INTO humanitarian_response (the_geom, id, label, cluster_id, cluster_label, location_id, location_label) VALUES ('
+    sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_id, cluster_label, location_id, location_label) VALUES ("
 
     # Add our values to the statement, making sure that we wrap string values
     # in quotes
