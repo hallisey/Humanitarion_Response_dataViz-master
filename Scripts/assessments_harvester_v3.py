@@ -36,27 +36,30 @@ def main():
         id = i["id"]
         label = i["label"]
         
-        #variables for nested bundles JSON
-        cluster_api = i["bundles"][0]["self"]
-        cluster_id = i["bundles"][0]["id"]
-        cluster_label = i["bundles"][0]["label"]
-        #checks connection and loads the json
-        openbundles = urllib2.urlopen(cluster_api)
-        if (openbundles.getcode() == 200):
-            bundles_data = openbundles.read()
-            load_bundles = json.loads(bundles_data)
-            
-            #defining the variables to be inserted into cartodb from the nested JSON
-            bundles_email = load_bundles["data"][0]["email"]
-            bundles_global_cluster_id = load_bundles["data"][0]["global_cluster"]["id"]
-            bundles_global_cluster_label = load_bundles["data"][0]["global_cluster"]["label"]
-            bundles_leadagency_id = load_bundles["data"][0]["lead_agencies"][0]["id"]
-            bundles_leadagency_label = load_bundles["data"][0]["lead_agencies"][0]["label"]
-            bundles_partners_id = load_bundles["data"][0]["partners"][0]["id"]
-            bundles_partners_label = load_bundles["data"][0]["partners"][0]["label"]
-            cluster_coordinators = load_bundles["data"][0]["cluster_coordinators"]
-            hid_access = load_bundles["data"][0]["hid_access"]
+        #get the clusters
+        cluster_label = ""
+        for b in i["bundles"]:
+            if "label" in i["bundles"][0]:
+                cluster_label += str(b["label"]) + ", "
+            else:
+                cluster_label = "null"
+        if cluster_label != "null":
+            cluster_label = cluster_label[:-2]
+        else:
+            cluster_label = cluster_label
         
+        #get the organizations
+        org_label = ""
+        for c in i["organizations"]:
+            if "label" in i["organizations"][0]:
+                org_label += str(c["label"]) + ", "
+            else:
+                org_label = "null"
+        if org_label != "null":
+            org_label = org_label[:-2]
+        else:
+            org_label = org_label
+            
         #variablea for nested locations JSON
         location_api = i["locations"][0]["self"]
         location_id = i["locations"][0]["id"]
@@ -71,8 +74,17 @@ def main():
             geoid = load_locations["data"][0]["id"]
             geo_pcode = load_locations["data"][0]["pcode"]
             geo_iso_code = load_locations["data"][0]["iso3"]
+            geo_admin_level = load_locations["data"][0]["admin_level"]
             lat = load_locations["data"][0]["geolocation"]["lat"]
             long = load_locations["data"][0]["geolocation"]["lon"]
+            if geo_admin_level == "0":
+                country = location_label
+            elif geo_admin_level =="1":
+                country_url = load_locations["data"][0]["parent"]
+                def getCountry():
+                    
+                
+                
         #prints error mesage if connection fails   
         else:
             print "Received an error from the server and cannot retrieve the results" + str(openlocations.getcode())
@@ -137,8 +149,8 @@ def main():
         
         
         
-        sql_query = "ID: " + str(id) + " Label: " + str(label) + " ClusterID: " + str(cluster_id) + " ClusterLabel: " + str(cluster_label) + " ClusterCoordinators: " + str(cluster_coordinators) + " ClusterEmail: " + str(bundles_email) + " Global ClusterID: " + str(bundles_global_cluster_id) + " Global Cluster Label: " + str(bundles_global_cluster_label) + " Cluster Lead Agency ID: " + str(bundles_leadagency_id) + " Cluster Lead Agency Label: " + str(bundles_leadagency_label)  + " HID Access: " + str(hid_access) + " DateStart: " + str(date_start) + " DateEnd: " + str(date_end) + " DateTimeZone: " + str(date_timezone)
-        print str(sql_query)
+        sql_query = "ID: " + str(id) + " Label: " + str(label) + " DateStart: " + str(date_start) + " DateEnd: " + str(date_end) + " DateTimeZone: " + str(date_timezone)
+       # print str(sql_query)
 #        try:
 #            sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_id, cluster_label, location_id, location_label, geoid, geo_pcode, geo_iso_code, subject) VALUES ("
 #            sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_id, cluster_label, location_id, location_label, geoid, geo_pcode, geo_iso_code, subject)
