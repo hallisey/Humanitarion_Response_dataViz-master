@@ -54,7 +54,6 @@ def main():
         
         if int(last_modified) < last_timestamp:
             list_ids += [id]
-            print str(list_ids)
         else:
             pass
         
@@ -263,6 +262,7 @@ def main():
             #except CartoDBException as e:
                #print ("some error ocurred", e)
       
+      print str(list_ids)
           
   else:
         print "Received an error from the server, cannot retrieve results " + str(webUrl.getcode())
