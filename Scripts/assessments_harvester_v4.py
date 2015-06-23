@@ -11,10 +11,8 @@ cl = CartoDBAPIKey(api_key, cartodb_domain)
 urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments"
 #timestamp log for last run
 epochtime = int(time.time())
-#stores the IDs that need to be updated in a list
-list_ids = []
 
-#opens the timestamp log and reads the contents
+#gets the last_timestamp from the log file
 def get_timestamp_log():
     try:
         open_lastrun = open("lastrun.txt","r")
@@ -27,7 +25,7 @@ def get_timestamp_log():
         pass
 get_timestamp_log()
 
-#updates or creates the timestamp log - should run last
+#updates or creates the timestamp log and stores the last run timestamp
 def update_timestamp_log():
     lastrun_log = open("lastrun.txt","w+")
     for i in range(1):
@@ -41,19 +39,22 @@ def main():
   webUrl = urllib2.urlopen(urlData)
   if (webUrl.getcode() == 200):
       data = webUrl.read()
+    
     # Use the json module to load the string data into a dictionary
       api_url = json.loads(data)
+      
+      list_ids = []
       
       for i in api_url["data"]:
         #defining the main level variables that will be pulled into CartoDB
         id = i["id"]
         label = i["label"]
-        
-        #determines if item has been updated since the last run
         last_modified = i["changed"]
         date_created = i["created"]
-        if last_modified < last_timestamp:
+        
+        if int(last_modified) < last_timestamp:
             list_ids += [id]
+            print str(list_ids)
         else:
             pass
         
@@ -249,8 +250,8 @@ def main():
                 print "Cannot open locations url. Code: " + str(openlocations.getcode())
       
             try:
-                sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, last_modified, date_created) VALUES ("
-                sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, last_modified, date_created)
+                sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url) VALUES ("
+                sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url)
                 sql_query = sql_query + ")"
                 print str(sql_query)
             except ValueError,e:
@@ -261,8 +262,7 @@ def main():
                 #print cl.sql(sql_query)
             #except CartoDBException as e:
                #print ("some error ocurred", e)
-      print list_ids
-
+      
           
   else:
         print "Received an error from the server, cannot retrieve results " + str(webUrl.getcode())
