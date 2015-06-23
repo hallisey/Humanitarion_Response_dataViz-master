@@ -52,11 +52,6 @@ def main():
         last_modified = i["changed"]
         date_created = i["created"]
         
-        if int(last_modified) < last_timestamp:
-            list_ids += [id]
-        else:
-            pass
-        
         #get the clusters
         cluster_label = ""
         for b in i["bundles"]:
@@ -247,20 +242,42 @@ def main():
             #prints error mesage if connection fails   
             else:
                 print "Cannot open locations url. Code: " + str(openlocations.getcode())
-      
-            try:
-                sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url) VALUES ("
-                sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url)
-                sql_query = sql_query + ")"
-                print str(sql_query)
-            except ValueError,e:
-                print ("some error ocurred", e)
             
+            #checks for IDs with timestamps newer than the last run
+            #if int(last_modified) < last_timestamp:
+            #    list_ids += [id]
+            #else:
+            #    pass
+            
+            list_ids = [6510,6511,6512]
+            
+            for i in list_ids:
+                try:
+                    sql_query = "DELETE FROM humanitarian_response WHERE id = "
+                    sql_query = sql_query + "'%s'" % str(i)
+                    print str(sql_query)
+                except ValueError,e:
+                    print ("an error ocurred", e)
+                
+                try:
+                    # your CartoDB account:
+                    print cl.sql(sql_query)
+                except CartoDBException as e:
+                    print ("some error ocurred", e)
+        
             #try:
+                sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified) VALUES ("
+                #sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified)
+                #sql_query = sql_query + ")"
+                #print str(sql_query)
+            #except ValueError,e:
+                #print ("some error ocurred", e)
+            
+            try:
                # your CartoDB account:
-                #print cl.sql(sql_query)
-            #except CartoDBException as e:
-               #print ("some error ocurred", e)
+               print cl.sql(sql_query)
+            except CartoDBException as e:
+               print ("some error ocurred", e)
       
       print str(list_ids)
           
