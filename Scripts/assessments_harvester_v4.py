@@ -8,7 +8,7 @@ api_key = 'ebd93f0d0daf2ab7d2b31e2449e307cfe0744252'
 cartodb_domain = 'troy'
 cl = CartoDBAPIKey(api_key, cartodb_domain)
 # define a variable to hold the source URL
-urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments?page=26"
+urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments"
 #timestamp log for last run
 epochtime = int(time.time())
 
