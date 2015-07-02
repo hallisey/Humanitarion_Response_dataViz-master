@@ -9,7 +9,7 @@
     	<link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.ie.css" />
 	<![endif]-->
 	<script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	<style>
     	html, body {height: 100%; margin: 0; padding: 0; width: 100%;}
       	#map {height:100%; width: 100%;}
@@ -121,15 +121,15 @@
 	
 	<script>
     	$(document).ready(function () {
-        	 var subLayer;
-			 cartodb.createVis('map', 'https://troy.cartodb.com/api/v2/viz/00b0a356-1bfd-11e5-aa2e-0e853d047bba/viz.json', {
-				cartodb_logo:false,
-				search:true,
-				type:cartodb,
-				legends:true,
-			 })
+        	var subLayer;
+		cartodb.createVis('map', 'https://troy.cartodb.com/api/v2/viz/00b0a356-1bfd-11e5-aa2e-0e853d047bba/viz.json', {
+			cartodb_logo:false,
+			search:true,
+			type:cartodb,
+			legends:true,
+		})
 			 
-             .done(function (vis, layers) {
+             	.done(function (vis, layers) {
             	subLayer = layers[1].getSubLayer(0);
             	subLayer.setInteraction(true);
             	subLayer.setInteractivity('country, assessment_url, cartodb_id, label');
@@ -139,12 +139,12 @@
             		template: $('#infowindow_template').html()
             	});
             	subLayer.on('featureClick', function(e, latlng, pos, data) {
-					console.log(data);            	
-			    });
-			    subLayer.on('featureOver', function(e, latlng, pos, data) {
+			console.log(data);            	
+		});
+		subLayer.on('featureOver', function(e, latlng, pos, data) {
              		$('#map').css('cursor','pointer');
-			    });
-             })
+		});
+             	})
              
              .error(function(e) {
         		console.log(e);
