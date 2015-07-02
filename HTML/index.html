@@ -30,13 +30,13 @@
 		  <a href="#close" class="cartodb-popup-close-button close">x</a>
 		  <div class="cartodb-popup-header">
 		    <h4>country</h4>
-		    <h1>{{country}}</h1>
+		    <h1>{{data.country}}</h1>
 		    <span class="separator"></span>
 		  </div>
 		  <div class="cartodb-popup-content-wrapper">
 		    <div class="cartodb-popup-content">
 		      <h4>assessment_url</h4>
-		      <p>{{assessment_url}}</p>
+		      <p>{{data.assessment_url}}</p>
 		      <h4>cluster_label</h4>
 		      <p>{{cluster_label}}</p>
 		      <h4>data_upload_filename</h4>
@@ -122,21 +122,32 @@
 	<script>
     	$(document).ready(function () {
         	 var subLayer;
-			 
 			 cartodb.createVis('map', 'https://troy.cartodb.com/api/v2/viz/00b0a356-1bfd-11e5-aa2e-0e853d047bba/viz.json', {
 				cartodb_logo:false,
 				search:true,
 				type:cartodb,
-				legends:true,
+				legends:true
 			 })
 			 
              .done(function (vis, layers) {
             	subLayer = layers[1].getSubLayer(0);
-            	subLayer.infowindow.set('template', $('#infowindow_template').html());
+            	subLayer.setInteraction(true);
+            	subLayer.setInteractivity('country, assessment_url, cartodb_id, label');
+            	vis.addInfowindow(map, subLayer, ['country'], {
+        			infowindowTemplate: $('#infowindow_template').html()
+        		});
             	subLayer.on('featureClick', function(e, latlng, pos, data) {
-             		//alert("Fuck you cartodb");             	
-			    });     
-             });
+					console.log(data);            	
+			    });
+			    subLayer.on('featureOver', function(e, latlng, pos, data) {
+             		//cursor.set('pointer');
+			    });      
+             })
+             
+             .error(function(e) {
+        		console.log(e);
+    		 });
+             
 			 var selectFrom = "SELECT * FROM humanitarian_response WHERE ";
              $("#countrynames").change(function () {
              	var country_name = "";
