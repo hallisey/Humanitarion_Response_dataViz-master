@@ -133,11 +133,9 @@
             	subLayer = layers[1].getSubLayer(0);
             	subLayer.setInteraction(true);
             	subLayer.setInteractivity('country, assessment_url, cartodb_id, label');
-            	vis.addOverlay({
-            		layer:subLayer,
-            		type:'infobox',
-            		template: $('#infowindow_template').html()
-            	});
+            	vis.addInfowindow(map, subLayer, ['country'], {
+        			infowindowTemplate: $('#infowindow_template').html()
+        		});
             	subLayer.on('featureClick', function(e, latlng, pos, data) {
 			console.log(data);            	
 		});
@@ -157,6 +155,7 @@
              		country_name += $(this).val();
              	});
              	subLayer.setSQL(selectFrom + "country = \'" + country_name + "\'");
+             	$('#clusternames, #datechange').val('clear');
              });
              
              $("#clusternames").change(function () {
@@ -165,6 +164,7 @@
              		cluster_name += $(this).val();
              	});
              	subLayer.setSQL(selectFrom + "cluster_label LIKE \'%" + cluster_name + "%\'");
+             	$('#countrynames, #datechange').val('clear');
              });
              
              $("#datechange").change(function () {
@@ -178,6 +178,7 @@
              		the_dates = eval($(this).val());
              	});
              	subLayer.setSQL(selectFrom + "date_start > \'" + the_dates + "\'");
+             	$('#countrynames, #clusternames').val('clear');
              });
              
              //$.getJSON('https://troy.cartodb.com/api/v2/sql/?q=SELECT DISTINCT org_label FROM humanitarian_response', function(data) {
@@ -194,7 +195,7 @@
         <div id="filters">
         	<h3>Filter by Country</h3>
     		<select id="countrynames">
-    			<option selected disabled value='Select a Country'>Select a Country</option>
+    			<option selected disabled value='clear'>Select a Country</option>
     			<option value="Afghanistan">Afghanistan</option>
     			<option value="Burkina Faso">Burkina Faso</option>
     			<option value="Cameroon">Cameroon</option>
@@ -234,7 +235,7 @@
     		</select>
         	<h3>Filter by Global Cluster</h3>
     		<select id="clusternames">
-    			<option selected disabled value='Select a Global Cluster'>Select a Global Cluster</option>
+    			<option selected disabled value='clear'>Select a Global Cluster</option>
     			<option value="Camp Coordination / Management">Camp Coordination / Management</option>
     			<option value="Child Protection">Child Protection</option>
     			<option value="Early Recovery">Early Recovery</option>
@@ -254,7 +255,7 @@
     		</select>
     		<h3>Filter by Date</h3>
     		<select id="datechange">
-    			<option selected disabled value='Select a Time Period'>Select a Time Period</option>
+    			<option selected disabled value='clear'>Select a Time Period</option>
     			<option value="yesterday">Yesterday</option>
     			<option value="oneweek">Past Week</option>
     			<option value="twoweeks">Past Two Weeks</option>
