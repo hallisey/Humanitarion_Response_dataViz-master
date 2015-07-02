@@ -126,22 +126,24 @@
 				cartodb_logo:false,
 				search:true,
 				type:cartodb,
-				legends:true
+				legends:true,
 			 })
 			 
              .done(function (vis, layers) {
             	subLayer = layers[1].getSubLayer(0);
             	subLayer.setInteraction(true);
             	subLayer.setInteractivity('country, assessment_url, cartodb_id, label');
-            	vis.addInfowindow(map, subLayer, ['country'], {
-        			infowindowTemplate: $('#infowindow_template').html()
-        		});
+            	vis.addOverlay({
+            		layer:subLayer,
+            		type:'infobox',
+            		template: $('#infowindow_template').html()
+            	});
             	subLayer.on('featureClick', function(e, latlng, pos, data) {
 					console.log(data);            	
 			    });
 			    subLayer.on('featureOver', function(e, latlng, pos, data) {
-             		//cursor.set('pointer');
-			    });      
+             		$('#map').css('cursor','pointer');
+			    });
              })
              
              .error(function(e) {
