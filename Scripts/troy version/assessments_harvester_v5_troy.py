@@ -4,8 +4,8 @@ import urllib2, json, calendar, time
 from cartodb import CartoDBAPIKey, CartoDBException
 
 #cartodb variables
-api_key = 'cdce2379e95923bfdd7715fbf09a0ababdc1c3b5'
-cartodb_domain = 'fis-ocha'
+api_key = 'ebd93f0d0daf2ab7d2b31e2449e307cfe0744252'
+cartodb_domain = 'troy'
 cl = CartoDBAPIKey(api_key, cartodb_domain)
 # define a variable to hold the source URL
 urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments"
@@ -32,16 +32,14 @@ def update_timestamp_log():
         lastrun_log.write(str(epochtime))
     lastrun_log.close()
     print str(epochtime)
-
-#executes the cartodb modifications    
+    
 def modify_cartodb(sql_query):
     try:
         # your CartoDB account:
         print cl.sql(sql_query)
     except CartoDBException as e:
         print ("some error ocurred", e)
-
-# deletes rows from cartodb       
+       
 def delete_cartodb_sql(id):        
     try:
         sql_query = "DELETE FROM humanitarian_response WHERE id = "
@@ -50,8 +48,7 @@ def delete_cartodb_sql(id):
     except ValueError,e:
         print ("an error ocurred", e)
     modify_cartodb(sql_query)        
-
-#inserts rows into cartodb                
+                
 def insert_cartodb_sql(lat, long, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified):
     try:
         sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified) VALUES ("
@@ -306,18 +303,16 @@ def humanitarian_response_api(urlData):
         except:
             pass        
       print insertable_items
-      
-      #checks the timestamp to determine if items need to be updates or added
+
       for i in insertable_items:
           if (int(last_timestamp) == 0):
-              pass #this is used on first run, you can insert all items by deleting "lastrun.txt" which will reset the timestamp to 0.
+              pass
           elif int(i[43]) > int(last_timestamp):
               delete_cartodb_sql(i[2])
       for i in insertable_items:
           if int(i[43]) > int(last_timestamp):       
               insert_cartodb_sql(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11], i[12], i[13], i[14], i[15], i[16], i[17], i[18], i[19], i[20], i[21], i[22], i[23], i[24], i[25], i[26], i[27], i[28], i[29], i[30], i[31], i[32], i[33], i[34], i[35], i[36], i[37], i[38], i[39], i[40], i[41], i[42], i[43])
-      
-      #loops through the API pages 
+       
       if "next" in api_url:
           nextUrl = api_url["next"]["href"]
           print nextUrl
@@ -328,8 +323,8 @@ def humanitarian_response_api(urlData):
   else:
       print "Received an error from the server, cannot retrieve results " + str(webUrl.getcode())
   
- 
- #main function   
+  
+    
 if __name__ == "__main__":
   get_timestamp_log()
   next_exists = True
