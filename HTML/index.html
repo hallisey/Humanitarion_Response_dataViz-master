@@ -31,6 +31,10 @@
       	div.cartodb-searchbox input.text {width:203px;}
       	div.cartodb-popup-header {background-color:red;}
       	div.cartodb-popup-header h4 {color:#FFFFFF;}
+      	::-webkit-input-placeholder {font-size:11px; font-style:italic; color:rgb(150,150,150);}
+		:-moz-placeholder { /* Firefox 18- */font-size:11px; font-style:italic; color:rgb(150,150,150);}
+		::-moz-placeholder {  /* Firefox 19+ */ font-size:11px; font-style:italic; color:rgb(150,150,150);}
+		:-ms-input-placeholder {font-size:11px; font-style:italic; color:rgb(150,150,150);}
       	#custom-infowindow {overflow-y:scroll; width:0; height:100%; box-shadow: inset -7px 0 9px -7px rgba(0,0,0,0.4); box-sizing: border-box; background:rgba(255,255,255,0.9); position:absolute; left:0px; top:0; padding:0;}
 		#close-window {display:none; line-height:20px; font-weight:bold; width:20px; text-align:center; vertical-align:middle; background-color:#FFFFFF; color:rgb(150,150,150); text-decoration:none; border:2px solid rgb(150,150,150); border-radius:20px; font-size:12px; position:absolute; top:20px; left:0px; z-index:2000;}
 		#close-window:hover, #close-window:focus {background-color:rgb(150,150,150); color:#FFFFFF; box-shadow:0px 0px 4px 2px rgba(0, 0, 0, 0.2);}
@@ -39,7 +43,7 @@
 		.infobar {background-color:#0FA4DE; width:100%; height:30px; color:#FFFFFF; position:absolute; left:0; top:0; font-weight:300; font-size:12px; padding:10px;}
 		.status {position:absolute; right:10px;}
 		.status_content {font-style:italic;}
-		.item .header h1 {font-size:17px; color:#0FA4DE; line-height:20px; margin-top:0; text-transform:capitalize; padding-top: 30px; padding-bottom:10px; border-bottom:1px dotted rgb(100,100,100); font-weight:700;}
+		.item .header h1 {font-size:17px; word-wrap: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; -ms-hyphens: auto; hyphens: auto;color:#0FA4DE; line-height:20px; margin-top:0; text-transform:capitalize; padding-top: 30px; padding-bottom:10px; border-bottom:1px dotted rgb(100,100,100); font-weight:700;}
 		.item .content p {font-size: 12px; color:rgb(100,100,100); font-family:Arial, Tahoma, san-serif; color:rgb(200,200,200); text-transform:uppercase; font-weight:bold; padding-bottom:5px; padding-top:5px; margin:0; border-bottom:1px dotted rgb(240,240,240);}
 		.item .content p span {font-size:14px; font-family:Exo, Arial, Helvetica, sans-serif; color:#000000; font-weight:500; text-transform:none;}
 		.item .content p span.other_location_content {font-size:12px; color:rgb(200,200,200); font-style:italic;}
@@ -169,10 +173,20 @@
     			<option value="nintydays">Past 90 Days</option>
     		</select>
     		<h3>Filter by Organization Name</h3>
-    		<input id="organization" placeholder="e.g. United Nations Childrens Fund" />
+    		<input id="organization" placeholder="e.g. UNICEF or United Nations Children's Fund" />
     		<br/><br/>
     		<input type="checkbox" id="multiquery" /><label for="multi-query"> Enable Multiple Filters</label>
     		<button type="reset" id="reset">Reset</button>
+    		<br/><br/>
+    		<h3>Download Data</h3>
+    		<select id="download">
+    			<option selected disabled value="clear">Select a File Format</option>
+    			<option value="csv">CSV</option>
+    			<option value="shp">SHP (.zip)</option>
+    			<option value="kml">KML</option>
+    			<option value="geojson">GeoJSON</option>
+    			<option value="svg">SVG</option>
+    		</select>
     	</form>
     </div>
     
@@ -185,7 +199,7 @@
 		var map = new L.Map('map', {
 			zoom: 3,
 		  	center: [13, 50],
-		  	maxZoom: 9
+		  	maxZoom: 12
 		});
 
         // base layer
@@ -195,6 +209,7 @@
 		
 		// global vars
 		var sublayer;
+		var sublayer2;
 		var cartodb_user = 'fis-ocha';
 		var vizjson = 'https://fis-ocha.cartodb.com/api/v2/viz/4fc33e6a-2655-11e5-9a6d-0e9d821ea90d/viz.json';
 		var sql = new cartodb.SQL({user:cartodb_user});
@@ -235,10 +250,20 @@
         	var searchbar = cdb.vis.Overlay.create('search', map.viz, {});
         	searchbar.show();
         	$('#map').append(searchbar.render().el);
-        	$('.cartodb-searchbox').find('input.text').attr('placeholder', 'Search');
+        	$('.cartodb-searchbox').find('input.text').attr('placeholder', 'Location (e.g. Kathmandu)');
         	
         	//defines the sublayer
         	sublayer = layer.getSubLayer(0);
+        	layer.createSubLayer({
+			    sql: "SELECT * FROM ne_10m_admin_0_countries",
+			    cartocss: '#ne_10m_admin_0_countries{' +
+					  'polygon-opacity: 0;' +
+					  'line-color: #000000;' +
+					  'line-width: 0;' +
+					  'line-opacity: 0;' +
+					'}'
+			});
+			sublayer2 = layer.getSubLayer(1);
         	
         	//defines the infowindowtemplate
         	var infowindowtemplate = $('#infowindowtemplate').html();
@@ -435,7 +460,6 @@
     //// filter controls
     	
     	// global vars
-    	var query;
     	var today = new Date();
         var yesterday = today.toISOString(today.setDate(today.getDate() - 1));
         var oneweek = today.toISOString(today.setDate(today.getDate() - 7));
@@ -458,10 +482,11 @@
     		var clusterName = (cluster_name != "clear" ? "cluster_label LIKE \'%" + cluster_name + "%\'": '');
 
     		var organization = $('#organization').val();
+    		var organization = organization.replace("'","''");
     		if (organization == null){
     			organization = "clear";
     		}
-    		var organizationName = organization != '' ? "org_label LIKE \'%" + organization + "%\'": '';
+    		var organizationName = organization != '' ? "org_label ILIKE \'%" + organization + "%\' OR org_acronym ILIKE \'%" + organization + "%\'": '';
 
     		var the_dates = eval($('#datechange').val());
     		if (the_dates == null){
@@ -476,6 +501,7 @@
     		// runs the query
     		query = "SELECT * FROM humanitarian_response WHERE " + select;
     		sublayer.setSQL(query);
+    		console.log(query);
     		
     		// counts the number of assessments depending on the filter results
     		var count = "SELECT COUNT(*) FROM humanitarian_response WHERE " + select;
@@ -485,7 +511,7 @@
 			    var the_count = data.rows[0]["count"];
 			    if (the_count == 0) {
 			    	alert("There are no results. Please reset the filters and try again.");
-			    	reset();
+			    	//reset();
 			    }
 			    $("#thecount").val('# of Assessments: ' + the_count);
 			  });
@@ -500,7 +526,44 @@
     		}
     		runQuery();
     		infowindowReset();
-            sql.getBounds(query).done(function(bounds) { // resets the map bounds
+    		
+    		var country_name = $(this).val(); // defines country name as selected option
+    		
+    		// redefines the country names in special cases to match the #ne_10m_admin_0_countries admin names
+    		if (country_name == "Congo, The Democratic Republic of the") {
+    			country_name = "Democratic Republic of the Congo";
+    		}
+    		if (country_name == "occupied Palestinian territory") {
+    			country_name = "Palestine";
+    		}
+    		if (country_name == "Syrian Arab Republic") {
+    			country_name = "Syria";
+    		}
+    		
+    		// SQL statement to get the country bounds
+    		var country_bounds = "SELECT * FROM ne_10m_admin_0_countries WHERE admin = \'" + country_name + '\'';
+    		
+    		// sets the CartoCSS to make the outline visible
+    		sublayer2.setCartoCSS('#ne_10m_admin_0_countries [admin = \'' + country_name + '\'] {' +
+				  'polygon-opacity: 0;' +
+				  'line-color: #000000;' +
+				  'line-width: 1;' +
+				  'line-opacity: 1;' +
+				'}'
+			);
+			
+			// *special case for Somalia --- shows both Somalia and Somaliland which are treated as separate in #ne_10m_admin_0_countries
+			if (country_name == "Somalia") {
+    			sublayer2.setCartoCSS('#ne_10m_admin_0_countries [admin = \'Somalia\'], #ne_10m_admin_0_countries [admin = \'Somaliland\']{' +
+					  'polygon-opacity: 0;' +
+					  'line-color: #000000;' +
+					  'line-width: 1;' +
+					  'line-opacity: 1;' +
+					'}' 
+				);
+    		}
+		
+            sql.getBounds(country_bounds).done(function(bounds) { // resets the map bounds to the country outlines to prevent too close zoom extent
 				latlon = bounds[0];
                 map.fitBounds(bounds);
 			});
@@ -512,6 +575,7 @@
     		}
     		runQuery();
     		infowindowReset();
+    		resetcountryoutline();
             sql.getBounds(query).done(function(bounds) { // resets the map bounds
 				latlon = bounds[0];
                 map.fitBounds(bounds);
@@ -527,6 +591,7 @@
             	}
             	runQuery();
             	infowindowReset();
+            	resetcountryoutline();
             	sql.getBounds(query).done(function(bounds) { // resets the map bounds
 					latlon = bounds[0];
 	                map.fitBounds(bounds);
@@ -543,10 +608,20 @@
 	       	}
 	       	runQuery();
 	       	infowindowReset();
+	       	resetcountryoutline();
          	sql.getBounds(query).done(function(bounds) {
 				latlon = bounds[0];
                 map.fitBounds(bounds);
 			});
+        });
+        
+        $("#download").change(function () {
+        	$("#download option:selected").each(function() {
+         		fileformat = $(this).val();
+         	});
+    		var download_data = encodeURI('http://' + cartodb_user + '.cartodb.com/api/v2/sql?format=' + fileformat + '&q=' + query);
+    		window.location.href = download_data;
+            $('#download').val("clear");
         });
 	    
 	    // reset functions
@@ -561,6 +636,7 @@
 			
 			// closes the infowindow on reset
 			infowindowReset();
+			resetcountryoutline();
     	}
     	
     	// resets the form values
@@ -593,6 +669,7 @@
     		}
     	}
     	
+    	// resets the infowindows
     	function infowindowReset() {
     		$("#close-window").css({'display':'none'});
 			$("#custom-infowindow").css({padding: 0});
@@ -601,8 +678,20 @@
 			$("div#wrapper").css({'display':'none'});
     	}
     	
+    	// resets the country outlines
+    	function resetcountryoutline() {
+    		var country_outline = 'SELECT * FROM humanitarian_response';
+    		sublayer2.setCartoCSS('#ne_10m_admin_0_countries {' +
+				  'polygon-opacity: 0;' +
+				  'line-color: #000000;' +
+				  'line-width: 0;' +
+				  'line-opacity: 0;' +
+				'}'
+			);
+    	}
+    	
     	$("#reset").click(function () {
-    		reset(); //runs the reset function
+    		reset(); //runs the reset function on click
     		getmastercount(); //resets the total count to all
     	});
     	
