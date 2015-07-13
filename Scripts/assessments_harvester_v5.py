@@ -8,7 +8,7 @@ api_key = 'cdce2379e95923bfdd7715fbf09a0ababdc1c3b5'
 cartodb_domain = 'fis-ocha'
 cl = CartoDBAPIKey(api_key, cartodb_domain)
 # define a variable to hold the source URL
-urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments"
+urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments" #if there is a failure you can add ?page=# to the url and the script will pickup where it left off. 
 #timestamp log for last run
 epochtime = int(time.time())
 
@@ -19,7 +19,7 @@ def get_timestamp_log():
         if open_lastrun.mode == 'r':
             # check to make sure that the file was opened
             global last_timestamp
-            last_timestamp = open_lastrun.read()
+            last_timestamp = open_lastrun.read() #if you want to update all of the items then open the lastrun.txt document and change the value to 1.
     except:
         last_timestamp = 0
     print last_timestamp
@@ -52,10 +52,10 @@ def delete_cartodb_sql(id):
     modify_cartodb(sql_query)        
 
 #inserts rows into cartodb                
-def insert_cartodb_sql(lat, long, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified):
+def insert_cartodb_sql(lat, long, id, label, cluster_label, org_label, org_acronym, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified):
     try:
-        sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified) VALUES ("
-        sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified)
+        sql_query = "INSERT INTO humanitarian_response (the_geom, id, label, cluster_label, org_label, org_acronym, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified) VALUES ("
+        sql_query = sql_query + "'SRID=4326; POINT (%f %f)', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'" % (float(str(long)), float(str(lat)), id, label, cluster_label, org_label, org_acronym, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified)
         sql_query = sql_query + ")"
         print str(sql_query)
     except ValueError,e:
@@ -99,7 +99,7 @@ def humanitarian_response_api(urlData):
                         else:
                             print "Cannot open bundles url. Code: " + str(openbundles.getcode())    
                         if (bundles_label != None):
-                            cluster_label += str(bundles_label).replace("'", "") + ", "
+                            cluster_label += str(bundles_label).replace("'", "''") + ", "
                     else:
                         cluster_label = "null"
             except:
@@ -114,24 +114,43 @@ def humanitarian_response_api(urlData):
         #get the organizations
         try:
             org_label = ""
+            org_acronym = ""
             for c in i["organizations"]:
                 if "label" in i["organizations"][0]:
-                    org_label += str(c["label"]).replace("'", "") + ", "
+                    
+                    org_api = c["self"]
+                    openorgs = urllib2.urlopen(org_api)
+                    if (openorgs.getcode() == 200):
+                        orgs_data = openorgs.read()
+                        load_orgs = json.loads(orgs_data)
+                        if "acronym" in load_orgs["data"][0]:
+                            org_acronym += str(load_orgs["data"][0]["acronym"]) + ", "
+                        else:
+                            org_acronym = "null"
+                    else:
+                        print "Cannot open organizations url. Code: " + str(openorgs.getcode())
+                        
+                    org_label += str(c["label"]).replace("'", "''") + ", "
                 else:
                     org_label = "null"
             if org_label != "null":
                 org_label = org_label[:-2]
             else:
                 org_label = org_label
+            if org_acronym != "null":
+                org_acronym = org_acronym[:-2]
+            else:
+                org_acronym = org_acronym
         except TypeError:
             org_label = "null"
+            org_acronym = "null"
         
         #get the themes
         theme_label = ""
         try:
             for t in i["themes"]:
                 if "label" in i["themes"][0]:
-                    theme_label += str(t["label"]).replace("'", "") + ", "
+                    theme_label += str(t["label"]).replace("'", "''") + ", "
                 else:
                     theme_label = "null"
             if theme_label != "null":
@@ -146,7 +165,7 @@ def humanitarian_response_api(urlData):
         try:
             for d in i["disasters"]:
                 if "label" in i["disasters"][0]:
-                    disasters_label += str(d["label"]).replace("'", "") + ", "
+                    disasters_label += str(d["label"]).replace("'", "''") + ", "
                 else:
                     disasters_label = "null"
             if theme_label != "null":
@@ -158,7 +177,7 @@ def humanitarian_response_api(urlData):
             
         #get the operations
         try:
-            operation_label = str(i["operation"][0]["label"]).replace("'", "")
+            operation_label = str(i["operation"][0]["label"]).replace("'", "''")
             operation_api = i["operation"][0]["self"]
             #open the nested operation url
             openoperation = urllib2.urlopen(operation_api)
@@ -301,21 +320,21 @@ def humanitarian_response_api(urlData):
                     print "Cannot open locations url. Code: " + str(openlocations.getcode())
                 
                 #add parsed items to master list
-                insertable_items += [(lat, long, id, label, cluster_label, org_label, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified)]
-                print "Processing... ID: " + str(id) + " Clusters: " + str(cluster_label) +  " Location: " + str(location_label) + ", " + str(country)
+                insertable_items += [(lat, long, id, label, cluster_label, org_label, org_acronym, theme_label, disasters_label, operation_label, operation_status, operation_url, location_id, location_label, country, geoid, geo_pcode, geo_iso_code, geo_admin_level, other_location, subject, methodology, key_findings, date_start, date_end, date_start_text, date_end_text, date_timezone, frequency, status, report_id, report_filename, report_filesize, report_url, questionnaire_id, questionnaire_filename, questionnaire_filesize, questionnaire_url, data_upload_id, data_upload_filename, data_upload_filesize, data_upload_url, assessment_url, date_created, last_modified)]
+                print "Processing... ID: " + str(id) + " Clusters: " + str(cluster_label) +  " Location: " + str(location_label) + ", " + str(country) + " Organization: " + str(org_acronym)
         except:
             pass        
       print insertable_items
       
-      #checks the timestamp to determine if items need to be updates or added
+      #checks the timestamp to determine if items need to be updated or added
       for i in insertable_items:
           if (int(last_timestamp) == 0):
               pass #this is used on first run, you can insert all items by deleting "lastrun.txt" which will reset the timestamp to 0.
-          elif int(i[43]) > int(last_timestamp):
+          elif int(i[44]) > int(last_timestamp): #if you add more fields, make sure that last_modified is always last and update the index number accordningly. You must also insert the empty column manually into the cartodb table in order to work
               delete_cartodb_sql(i[2])
       for i in insertable_items:
-          if int(i[43]) > int(last_timestamp):       
-              insert_cartodb_sql(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11], i[12], i[13], i[14], i[15], i[16], i[17], i[18], i[19], i[20], i[21], i[22], i[23], i[24], i[25], i[26], i[27], i[28], i[29], i[30], i[31], i[32], i[33], i[34], i[35], i[36], i[37], i[38], i[39], i[40], i[41], i[42], i[43])
+          if int(i[44]) > int(last_timestamp):       
+              insert_cartodb_sql(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11], i[12], i[13], i[14], i[15], i[16], i[17], i[18], i[19], i[20], i[21], i[22], i[23], i[24], i[25], i[26], i[27], i[28], i[29], i[30], i[31], i[32], i[33], i[34], i[35], i[36], i[37], i[38], i[39], i[40], i[41], i[42], i[43], i[44])
       
       #loops through the API pages 
       if "next" in api_url:
