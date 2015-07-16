@@ -8,7 +8,7 @@ api_key = 'cdce2379e95923bfdd7715fbf09a0ababdc1c3b5'
 cartodb_domain = 'fis-ocha'
 cl = CartoDBAPIKey(api_key, cartodb_domain)
 # define a variable to hold the source URL
-urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments" #if there is a failure you can add ?page=# to the url and the script will pickup where it left off. 
+urlData = "http://www.humanitarianresponse.info/api/v1.0/assessments?sort=-changed" #if there is a failure you can add ?page=# to the url and the script will pickup where it left off. 
 #timestamp log for last run
 epochtime = int(time.time())
 
@@ -335,7 +335,8 @@ def humanitarian_response_api(urlData):
       for i in insertable_items:
           if int(i[44]) > int(last_timestamp):       
               insert_cartodb_sql(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11], i[12], i[13], i[14], i[15], i[16], i[17], i[18], i[19], i[20], i[21], i[22], i[23], i[24], i[25], i[26], i[27], i[28], i[29], i[30], i[31], i[32], i[33], i[34], i[35], i[36], i[37], i[38], i[39], i[40], i[41], i[42], i[43], i[44])
-      
+          else:
+              return False, None
       #loops through the API pages 
       if "next" in api_url:
           nextUrl = api_url["next"]["href"]
